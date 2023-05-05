@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: spin-installer
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      name: spin-installer
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: spin-installer
+    spec:
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/master
+          effect: NoSchedule
+      hostPID: true
+      volumes:
+        - name: host-root
+          hostPath:
+            path: /
+      initContainers:
+        - name: installer
+          image: jpflueger/spin-containerd-installer:0.5.1
+          imagePullPolicy: Always
+          securityContext:
+            privileged: true
+          env:
+            - name: HOST_ROOT
+              value: /host
+          volumeMounts:
+            - name: host-root
+              mountPath: /host
+      containers:
+        - name: pause
+          image: k8s.gcr.io/pause:3.1
+          imagePullPolicy: IfNotPresent

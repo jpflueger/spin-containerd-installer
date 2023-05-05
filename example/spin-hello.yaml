@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wasm-spin
+spec:
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  selector:
+    app: wasm-spin
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wasm-spin
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wasm-spin
+  template:
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+    metadata:
+      labels:
+        app: wasm-spin
+    spec:
+      runtimeClassName: wasmtime-spin
+      containers:
+      - name: spin-hello
+        image: ghcr.io/deislabs/containerd-wasm-shims/examples/spin-rust-hello:latest
+        command: ["/"]
