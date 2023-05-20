@@ -9,7 +9,7 @@ spec:
       targetPort: 80
   selector:
     app: wasm-spin
-  type: LoadBalancer
+  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -22,10 +22,6 @@ spec:
     matchLabels:
       app: wasm-spin
   template:
-    resources:
-      limits:
-        cpu: 100m
-        memory: 128Mi
     metadata:
       labels:
         app: wasm-spin
@@ -35,3 +31,7 @@ spec:
       - name: spin-hello
         image: ghcr.io/deislabs/containerd-wasm-shims/examples/spin-rust-hello:latest
         command: ["/"]
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi

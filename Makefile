@@ -1,4 +1,4 @@
-SHIM_VERSION ?= 0.5.1
+SHIM_VERSION ?= 0.6.0
 DOCKER_IMAGE ?= jpflueger/spin-containerd-installer:$(SHIM_VERSION)
 
 .PHONY: docker-build
