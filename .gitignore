@@ -1,6 +1,8 @@
 .terraform/
 .terraform.*
+
 terraform.tfstate*
+terraform.tfvars
 *tfplan*
 
 .envrc
