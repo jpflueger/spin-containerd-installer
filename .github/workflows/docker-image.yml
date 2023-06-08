@@ -11,7 +11,7 @@ jobs:
       matrix:
         platform: [linux/amd64, linux/arm64]
     env:
-      SHIM_VERSION: 0.6.0
+      shim_version: 0.6.0
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -27,7 +27,7 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Generate commit tag
-      run: echo "GITHUB_SHA_SHORT=$(git rev-parse --short=6 \"$GITHUB_SHA\")" >> $GITHUB_ENV
+      run: echo "GITHUB_SHA_SHORT=$(git rev-parse --short=6 '${{ github.sha }}')" >> $GITHUB_ENV
 
     - name: Build and push
       uses: docker/build-push-action@v4
@@ -36,9 +36,9 @@ jobs:
         platforms: linux/amd64,linux/arm64
         push: true
         tags: |
-          ghcr.io/${{ GITHUB_REPOSITORY }}:${{ SHIM_VERSION }}
-          ghcr.io/${{ GITHUB_REPOSITORY }}:${{ SHIM_VERSION }}-${{ }}
-        args: --build-arg SHIM_VERSION=${{ SHIM_VERSION }}
+          ghcr.io/${{ github.repository }}:${{ env.shim_version }}
+          ghcr.io/${{ github.repository }}:${{ env.shim_version }}-${{ env.GITHUB_SHA_SHORT }}
+        args: --build-arg SHIM_VERSION=${{ env.shim_version }}
 
     - name: clear docker creds
       if: always()
