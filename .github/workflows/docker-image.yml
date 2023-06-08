@@ -11,5 +11,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
     - name: Build the Docker image
-      run: make docker-build
+      run: docker buildx build --platform linux/arm64 --build-arg SHIM_VERSION=${SHIM_VERSION} --tag spin-containerd-installer:${SHIM_VERSION} ./image
+      env:
+        SHIM_VERSION: 0.6.0
