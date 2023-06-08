@@ -48,6 +48,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             SHIM_VERSION=${{ env.shim_version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: clear docker creds
         if: always()
