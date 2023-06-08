@@ -1,6 +1,6 @@
 SHIM_VERSION ?= 0.6.0
 DOCKER_IMAGE ?= jpflueger/spin-containerd-installer:$(SHIM_VERSION)
-PLATFORM ?= linux/amd64,linux/arm64
+PLATFORM ?= linux/arm64
 
 .PHONY: docker-build
 docker-build:
