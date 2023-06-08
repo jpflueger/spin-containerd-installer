@@ -1,17 +1,23 @@
-FROM ubuntu:18.04
-
-# Install dependencies
-RUN DEBIAN_FRONTEND=noninteractive apt-get update \
+# Download the containerd-shim-spin
+FROM debian:bullseye as shim-downloader
+WORKDIR /downloads
+RUN export DEBIAN_FRONTEND=noninteractive \
+    && apt-get update -y \
     && apt-get install -y wget
+# NOTE: this binary uses the $(ARCH)-unknown-linux-musl triplet
+ARG SHIM_VERSION=0.5.1
+RUN wget -q -O - "https://github.com/deislabs/containerd-wasm-shims/releases/download/v${SHIM_VERSION}/containerd-wasm-shims-v1-linux-$(uname -m).tar.gz" | tar -xvz -f - containerd-shim-spin-v1
 
+# Download the toml CLI tool
+FROM rust:bullseye as toml-downloader
+RUN cargo install --version 0.2.3 toml-cli
+
+# Copy dependencies into the final image
+FROM busybox:1.36
 WORKDIR /work
 
-# Download and install containerd-shim-spin
-COPY ./spin-download.sh .
-ARG VERSION=0.5.1
-RUN ./spin-download.sh -v $VERSION
+COPY --from=toml-downloader /usr/local/cargo/bin/toml /usr/local/bin/toml
+COPY --from=shim-downloader /downloads/containerd-shim-spin-v1 ./containerd-shim-spin-v1
 
-# Add the install script to be run by the k8s daemonset
-COPY ./spin-install.sh .
-
-CMD ["./spin-install.sh"]
+COPY ./entrypoint.sh .
+CMD ["./entrypoint.sh"]

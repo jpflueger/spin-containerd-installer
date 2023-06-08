@@ -1,13 +1,14 @@
 SHIM_VERSION ?= 0.6.0
 DOCKER_IMAGE ?= jpflueger/spin-containerd-installer:$(SHIM_VERSION)
+PLATFORM ?= linux/amd64,linux/arm64
 
 .PHONY: docker-build
 docker-build:
-	docker buildx build --platform linux/amd64,linux/arm64/v8 --build-arg $(SHIM_VERSION) --tag $(DOCKER_IMAGE) ./image
+	docker buildx build --platform $(PLATFORM) --build-arg SHIM_VERSION=$(SHIM_VERSION) --tag $(DOCKER_IMAGE) ./image
 
 .PHONY: docker-push
 docker-push:
-	docker buildx build --push --platform linux/amd64,linux/arm64/v8 --build-arg $(SHIM_VERSION) --tag $(DOCKER_IMAGE) ./image
+	docker buildx build --push --platform $(PLATFORM) --build-arg SHIM_VERSION=$(SHIM_VERSION) --tag $(DOCKER_IMAGE) ./image
 
 .PHONY: docker-build-and-push
 docker-build-and-push: docker-build docker-push
