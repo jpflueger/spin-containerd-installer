@@ -1,8 +1,4 @@
-#!/usr/bin/env bash
-
-## VARIABLES
-# HOST_ROOT: the root directory of the host filesystem
-# DEBUG: if set to true, will print out debug information
+#!/usr/bin/env sh
 
 ## TODO
 # - how do we version the shim?
@@ -10,28 +6,14 @@
 # - add a label/taint/toleration when the shim is installed to indicate it accepts spin apps
 # - add aforementioned label/taint/toleration to the containerd config
 
-set -euo pipefail
+set -euo
 
 run_as_host() {
-  nsenter -m "/$HOST_ROOT/proc/1/ns/mnt" -- $@
+  nsenter -m /proc/1/ns/mnt -- "$@"
 }
 
-log() {
-  echo "$(date -Ins) [$1] ${@:2}"
-}
-
-debug() {
-  log debug "dumping debug information"
-  log debug "target_path: ${target_path}"
-  run_as_host ls -al "${host_target_path}"
-  log debug "host PATH env"
-  run_as_host printenv PATH
-  log debug "containerd_config_path: ${containerd_config_path}"
-  run_as_host ls -al $(dirname "${host_containerd_config_path}")
-  cat "${containerd_config_path}"
-  log debug "check containerd"
-  run_as_host which systemctl
-  run_as_host systemctl status containerd
+log() { 
+  echo "$(date -Iseconds) [$1] $(printf '%s' "${*}" | cut -f 2 -w)"
 }
 
 panic() {
@@ -45,68 +27,48 @@ get_runtime_type() {
 }
 
 set_runtime_type() {
-  log info "adding spin runtime '${runtime_type}' to ${containerd_config_path}"
-  local tmpfile=$(mktemp)
-  toml set "${containerd_config_path}" 'plugins."io.containerd.grpc.v1.cri".containerd.runtimes.spin.runtime_type' "${runtime_type}" > "${tmpfile}"
+  log info "adding spin runtime '${RUNTIME_TYPE}' to ${HOST_CONTAINERD_CONFIG}"
+  tmpfile=$(mktemp)
+  toml set "${HOST_CONTAINERD_CONFIG}" 'plugins."io.containerd.grpc.v1.cri".containerd.runtimes.spin.runtime_type' "${RUNTIME_TYPE}" > "${tmpfile}"
 
   # ensure the runtime_type was set
-  if [[ $(get_runtime_type "${tmpfile}") == "${runtime_type}" ]]; then
+  if [ "$(get_runtime_type "${tmpfile}")" = "${RUNTIME_TYPE}" ]; then
     # overwrite the containerd config with the temp file
-    mv "${tmpfile}" "${containerd_config_path}"
+    mv "${tmpfile}" "${HOST_CONTAINERD_CONFIG}"
     log info "committed changes to containerd config"
   else
-    panic "failed to set runtime_type to ${runtime_type}"
+    panic "failed to set runtime_type to ${RUNTIME_TYPE}"
   fi
 }
 
-# This script copies the shim to the node and configures containerd to use them
-# Options:
-#   -s: source path to containerd shim (default: ./containerd-shim-spin-v1)
-#   -t: target path to copy the shim (default: /bin/)
-#   -c: containerd config path (default: /etc/containerd/config.toml)
-while getopts s:t:c: flag
-do
-    case "${flag}" in
-        s) source_path=${OPTARG};;
-        t) target_path=${OPTARG};;
-        c) containerd_config_path=${OPTARG};;
-    esac
-done
-
-# check that the HOST_ROOT environment variable is set
-if [ -z "${HOST_ROOT}" ]; then
-  panic "HOST_ROOT environment variable is not set"
-fi
+HOST_CONTAINERD_CONFIG="${HOST_CONTAINERD_CONFIG:-/host/etc/containerd/config.toml}"
+HOST_BIN="${HOST_BIN:-/host/bin}"
 
 # provide default values if none provided
-source_path="${source_path:-./containerd-shim-spin-v1}"
-host_target_path="${target_path:-/usr/local/bin}"
-host_containerd_config_path="${containerd_config_path:-/etc/containerd/config.toml}"
-target_path="${HOST_ROOT}${host_target_path}"
-containerd_config_path="${HOST_ROOT}${host_containerd_config_path}"
-runtime_type="io.containerd.spin.v1"
+RUNTIME_TYPE="io.containerd.spin.v1"
+RUNTIME_HANDLE="spin"
 
-# check that the source path exists
-if [ ! -f "${source_path}" ]; then
-  panic "Source path ${source_path} does not exist"
+# check that the shim binary is included in the docker image
+if [ ! -f "./containerd-shim-spin-v1" ]; then
+  panic "shim binary not found"
 fi
 
-# check that the target path exists
-if [ ! -d "${target_path}" ]; then
-  panic "Target path ${target_path} does not exist"
+# check that the host's bin directory exists
+if [ ! -d "${HOST_BIN}" ]; then
+  panic "one of the host's bin directories should be mounted to ${HOST_BIN}"
 fi
 
 # check that the containerd config path exists
-if [ ! -f "${containerd_config_path}" ]; then
-  panic "Containerd config path ${containerd_config_path} does not exist"
+if [ ! -f "${HOST_CONTAINERD_CONFIG}" ]; then
+  panic "containerd config '${HOST_CONTAINERD_CONFIG}' does not exist"
 fi
 
-log info "copying the shim to the node's '${target_path}' directory"
-cp "${source_path}" "${target_path}"
+log info "copying the shim to the node's bin directory '${HOST_BIN}'"
+cp "./containerd-shim-spin-v1" "${HOST_BIN}"
 
 # check if the shim is already in the containerd config
-if [[ $(get_runtime_type "${containerd_config_path}") == "${runtime_type}" ]]; then
-  log info "runtime_type is already set to ${runtime_type}"
+if [ "$(get_runtime_type "${HOST_CONTAINERD_CONFIG}")" = "${RUNTIME_TYPE}" ]; then
+  log info "runtime_type is already set to ${RUNTIME_TYPE}"
 else
   set_runtime_type
 fi
