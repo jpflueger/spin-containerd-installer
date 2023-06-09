@@ -10,7 +10,7 @@ HOST_BIN="${HOST_BIN:-/host/bin}"
 
 RUNTIME_CONFIG_TYPE="${RUNTIME_CONFIG_TYPE:-io.containerd.spin.v1}"
 RUNTIME_CONFIG_HANDLE="${RUNTIME_CONFIG_HANDLE:-spin}"
-RUNTIME_CONFIG_TABLE="plugins.\"io.containerd.grpc.v1.cri\".containerd.runtimes.${RUNTIME_HANDLE}"
+RUNTIME_CONFIG_TABLE="plugins.\"io.containerd.grpc.v1.cri\".containerd.runtimes.${RUNTIME_CONFIG_HANDLE}"
 
 ##
 # helper functions
