@@ -41,6 +41,7 @@ jobs:
             ${{ env.image_name }}
           tags: |
             ${{ env.shim_version }}-{{ sha }}
+            ${{ env.shim_version }}
 
       - name: Build and push
         uses: docker/build-push-action@v4

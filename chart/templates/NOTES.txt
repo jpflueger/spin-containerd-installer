@@ -1,0 +1,7 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To read the logs use:
+  
+  $ kubectl logs daemonset/spin-containerd-installer -c installer --timestamps=true --prefix=true -f

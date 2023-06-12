@@ -61,5 +61,9 @@ if [ "$(get_runtime_type "${HOST_CONTAINERD_CONFIG}")" = "${RUNTIME_CONFIG_TYPE}
   echo "runtime_type is already set to ${RUNTIME_CONFIG_TYPE}"
 else
   set_runtime_type
+
+  echo "restarting containerd"
   nsenter -m/proc/1/ns/mnt -- systemctl restart containerd
+
+  #TODO: add label to node for scheduling
 fi
