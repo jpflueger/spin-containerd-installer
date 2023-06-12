@@ -15,10 +15,6 @@ RUNTIME_CONFIG_TABLE="plugins.\"io.containerd.grpc.v1.cri\".containerd.runtimes.
 ##
 # helper functions
 ##
-run_as_host() {
-  nsenter -m /proc/1/ns/mnt -- "$@"
-}
-
 get_runtime_type() {
   toml get -r "${1}" "${RUNTIME_CONFIG_TABLE}.runtime_type"
 }
@@ -65,12 +61,5 @@ if [ "$(get_runtime_type "${HOST_CONTAINERD_CONFIG}")" = "${RUNTIME_CONFIG_TYPE}
   echo "runtime_type is already set to ${RUNTIME_CONFIG_TYPE}"
 else
   set_runtime_type
-fi
-
-# for debugging purposes, remove before release
-if [ "${DEBUG:-false}" = true ]; then
-  # sleep for 5 seconds to allow the containerd service to restart
-  sleep 5
-  debug
-  while true; do sleep 60; done
+  nsenter -m/proc/1/ns/mnt -- systemctl restart containerd
 fi

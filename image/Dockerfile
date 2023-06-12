@@ -10,7 +10,9 @@ RUN wget -q -O - "https://github.com/deislabs/containerd-wasm-shims/releases/dow
 
 # Download the toml CLI tool
 FROM rust:bullseye as toml-downloader
-RUN cargo install --version 0.2.3 toml-cli
+RUN export TARG="$(uname -m)-unknown-linux-musl" \
+  && rustup target add "$TARG" \
+  && cargo install --target "$TARG" --version 0.2.3 toml-cli
 
 # Copy dependencies into the final image
 FROM busybox:1.36
