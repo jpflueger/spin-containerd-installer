@@ -50,7 +50,8 @@ fi
 
 if [ ! -f "${HOST_CONTAINERD_CONFIG}" ]; then
   echo "containerd config '${HOST_CONTAINERD_CONFIG}' does not exist"
-  exit 1
+  echo "creating a default containerd config with 'containerd config default'"
+  nsenter -m/proc/1/ns/mnt -- "containerd config default" > "/host/etc/containerd/config.toml"
 fi
 
 echo "copying the shim to the node's bin directory '${HOST_BIN}'"
