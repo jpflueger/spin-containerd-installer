@@ -1,4 +1,4 @@
-# spin-containerd-installer
+# spin-containerd-shim-installer
 
 This project provides an automated method to install and configure the containerd shim for Fermyon Spin in Kubernetes.
 
@@ -27,7 +27,7 @@ Because of these constraints, installing an additional runtime for containerd re
 This project provides a Helm chart that includes a [DaemonSet](chart/templates/daemonset.yaml) which runs an [init container](image/Dockerfile) *in privileged mode* in order to copy the binary to the node and update the containerd config with the new runtime. This is the most generic way to install the containerd runtime shim in Kubernetes environments.
 
 ```shell
-helm install spin-containerd-installer oci://ghcr.io/jpflueger/charts/spin-containerd-installer --version 0.1.0
+helm install spin-containerd-shim-installer oci://ghcr.io/jpflueger/charts/spin-containerd-shim-installer --version 0.1.0
 ```
 
 ## Disclaimer

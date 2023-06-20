@@ -1,5 +1,5 @@
 apiVersion: v2
-name: spin-containerd-installer
+name: spin-containerd-shim-installer
 description: A Helm chart for installing the containerd shim for spin
 type: application
 
