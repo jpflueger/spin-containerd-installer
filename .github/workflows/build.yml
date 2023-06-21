@@ -11,7 +11,7 @@ on:
         default: '0.6.0'
 
 env:
-  shim_version: ${{ github.events.inputs.shim_version || 0.6.0 }}
+  shim_version: ${{ github.events.inputs.shim_version || '0.6.0' }}
   chart_version: 0.1.0
 
 permissions:
