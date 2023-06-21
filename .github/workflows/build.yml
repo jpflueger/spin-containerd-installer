@@ -4,9 +4,14 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      shim_version:
+        description: 'Version of the shim to build'
+        required: true
+        default: '0.6.0'
 
 env:
-  shim_version: 0.6.0
+  shim_version: ${{ github.events.inputs.shim_version || 0.6.0 }}
   chart_version: 0.1.0
 
 permissions:
